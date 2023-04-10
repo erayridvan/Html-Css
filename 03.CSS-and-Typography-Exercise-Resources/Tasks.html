@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+	<script>	
+	function loadXMLDoc(url) {
+   const xmlhttp = new XMLHttpRequest();
+   xmlhttp.open("GET", url, false);
+   xmlhttp.send();
+   function generateTable(xmlDoc) {
+  const table = document.createElement("table");
+  const thead = document.createElement("thead");
+  const tbody = document.createElement("tbody");
+
+  // Add table header
+  const headerRow = document.createElement("tr");
+  const headers = ["System Name", "Study Name", "Study State", "Task Keyed Name", "Result Name", "Result Value", "Result Unit", "Target Met", "Requirement"];
+  headers.forEach(headerText => {
+    const th = document.createElement("th");
+    th.appendChild(document.createTextNode(headerText));
+    headerRow.appendChild(th);
+  });
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+
+  // Add table rows
+  const systemNodes = xmlDoc.evaluate("//alias[sys_System]", xmlDoc, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+  for (let i = 0; i < systemNodes.snapshotLength; i++) {
+    const systemNode = systemNodes.snapshotItem(i);
+    const systemName = systemNode.getElementsByTagName("sys_System")[0].textContent;
+    const studyNodes = systemNode.getElementsByTagName("sm_Study");
+    for (let j = 0; j < studyNodes.length; j++) {
+      const studyNode = studyNodes[j];
+      const studyName = studyNode.getElementsByTagName("name")[0].textContent;
+      const studyState = studyNode.getElementsByTagName("state")[0].textContent;
+      const taskNodes = studyNode.getElementsByTagName("sm_Task");
+      for (let k = 0; k < taskNodes.length; k++) {
+        const taskNode = taskNodes[k];
+        const taskKeyedName = taskNode.getElementsByTagName("keyed_name")[0].textContent;
+        const resultNodes = taskNode.getElementsByTagName("ar_SimulationResult");
+        for (let m = 0; m < resultNodes.length; m++) {
+          const resultNode = resultNodes[m];
+          const resultName = resultNode.getElementsByTagName("ar_resultname")[0].textContent;
+          const resultValue = resultNode.getElementsByTagName("ar_resultvalue")[0].textContent;
+          const resultUnit = resultNode.getElementsByTagName("ar_resultunit")[0].textContent;
+          const targetMet = resultNode.getElementsByTagName("ar_target_met")[0].textContent;
+          const requirementNode = resultNode.getElementsByTagName("re_Requirement")[0];
+          let requirement = "";
+          if (requirementNode) {
+            requirement = requirementNode.getElementsByTagName("ar_conditionexp")[0].textContent;
+          }
+          const row = document.createElement("tr");
+          const cells = [systemName, studyName, studyState, taskKeyedName, resultName, resultValue, resultUnit, targetMet, requirement];
+          cells.forEach(cellText => {
+            const td = document.createElement("td");
+            td.appendChild(document.createTextNode(cellText));
+            row.appendChild(td);
+          });
+          tbody.appendChild(row);
+        }
+      }
+    }
+  }
+
+  table.appendChild(tbody);
+  return table;
+}
+
+const table = generateTable(xmlDoc);
+document.body.appendChild(table);
+    return xmlhttp.responseXML;
+  }
+
+const xmlDoc = loadXMLDoc("https://test.ce2s.net/Study.xml");
+	</script>
+</body>
+</html>
